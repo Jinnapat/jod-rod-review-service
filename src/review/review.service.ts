@@ -11,9 +11,9 @@ export class ReviewService {
   async initialize() {
     const client = new MongoClient(this.configService.get('MONGO_URL'));
     await client.connect();
-    const db = client.db('match-service');
-    this.reviewCollection = db.collection('reservations');
-    console.log('connected to reservation db');
+    const db = client.db('review-service');
+    this.reviewCollection = db.collection('review');
+    console.log('connected to review db');
   }
 
   async getReviewsByParkingId(parkingLotId: string) {
