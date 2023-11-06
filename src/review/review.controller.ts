@@ -1,23 +1,22 @@
 import { Controller, Post, Get, Param, Body } from '@nestjs/common';
 import { ReviewService } from './review.service';
 
-@Controller('review')
+@Controller()
 export class ReviewController {
   constructor(private readonly reviewService: ReviewService) {
     this.reviewService.initialize();
   }
 
-  @Get(':id')
+  @Get('getReviewsByParkingLot/:id')
   async getReviewsHandler(@Param('id') parkingLotId) {
     return await this.reviewService.getReviewsByParkingId(parkingLotId);
   }
 
-  @Post(':id')
+  @Post('createReview/:id')
   async createReviewIdHandler(
-    @Param('id') parkingLotId,
-    @Body('userId') userId,
+    @Param('id') reservationId,
     @Body('message') message,
   ) {
-    await this.reviewService.createReview(parkingLotId, userId, message);
+    await this.reviewService.createReview(reservationId, message);
   }
 }
