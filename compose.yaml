@@ -5,9 +5,9 @@ services:
       - 6000:3000
     environment:
       MONGO_URL: mongodb://root:example@mongo:27017
-      PARKING_LOT_SERVICE_URL: http://host.docker.internal:4000
-      USER_SERVICE_URL: http://host.docker.internal:7000
-      MATCHING_SERVICE_URL: http://host.docker.internal:9000
+      PARKING_LOT_SERVICE_URL: http://host.docker.internal:5346/parking-lots-service
+      USER_SERVICE_URL: http://host.docker.internal:5346/user-service
+      MATCHING_SERVICE_URL: http://host.docker.internal:5346/reservation-service
   mongo:
     image: mongo
     restart: always
