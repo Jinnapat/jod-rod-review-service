@@ -36,7 +36,7 @@ export class ReviewService {
           userId: review.userId,
           username: userInfo.username,
           message: review.message,
-          createAt: review.createAt(),
+          createAt: review.createAt,
         };
       }),
     );
