@@ -33,7 +33,6 @@ export class ReviewService {
         const userInfo = await this.getUserInfo(review.userId);
         return {
           id: review._id,
-          reservationId: review.reservationId,
           userId: review.userId,
           username: userInfo.username,
           message: review.message,
