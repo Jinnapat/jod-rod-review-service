@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { MongoClient, Collection } from 'mongodb';
 import { ConfigService } from '@nestjs/config';
 
@@ -38,33 +43,39 @@ export class ReviewService {
     );
   }
 
-  async createReview(reservationId: string, message: string) {
-    const reservation = await this.checkReservationExist(reservationId);
-
+  async createReview(
+    parkingLotId: string,
+    bearerToken: string,
+    message: string,
+  ) {
+    await this.checkReviewable(parkingLotId, bearerToken);
+    const user = await this.tokenToUserInfo(bearerToken);
     const insertResult = await this.reviewCollection.insertOne({
-      reservationId,
-      parkingLotId: reservation.parkingLotId,
-      userId: reservation.userId,
+      parkingLotId,
+      userId: user.id,
       message,
       createAt: Date.now(),
     });
     return insertResult.insertedId;
   }
 
-  async checkReservationExist(reservationId: string) {
-    const findReservationResult = await fetch(
+  private async checkReviewable(parkingLotId: string, bearerToken: string) {
+    const checkReviewableResult = await fetch(
       this.configService.get('MATCHING_SERVICE_URL') +
-        '/getReservation/' +
-        reservationId,
+        '/checkIsParkingLotReviewable/' +
+        parkingLotId,
+      { headers: { Authorization: bearerToken } },
     );
 
-    if (findReservationResult.status != 200)
-      throw new NotFoundException('No reservation with that id');
-    const responseBody = await new Response(findReservationResult.body).json();
-    return responseBody;
+    if (checkReviewableResult.status != 200)
+      throw new InternalServerErrorException();
+    const responseBody = await new Response(checkReviewableResult.body).json();
+    if (!responseBody) {
+      throw new UnauthorizedException('You cannot review this parking lot');
+    }
   }
 
-  async checkParkingLotExist(parkingLotId: string) {
+  private async checkParkingLotExist(parkingLotId: string) {
     const findParkingLotResult = await fetch(
       this.configService.get('PARKING_LOT_SERVICE_URL') +
         '/getParkingSpace/' +
@@ -77,7 +88,7 @@ export class ReviewService {
       );
   }
 
-  async getUserInfo(userId: number) {
+  private async getUserInfo(userId: number) {
     const findUserResult = await fetch(
       this.configService.get('USER_SERVICE_URL') + '/getUser/' + userId,
     );
@@ -86,5 +97,19 @@ export class ReviewService {
       throw new NotFoundException('Cant find user with that id');
 
     return await new Response(findUserResult.body).json();
+  }
+
+  private async tokenToUserInfo(bearerToken: string) {
+    const getUserResult = await fetch(
+      this.configService.get('USER_SERVICE_URL') + '/getProfile',
+      {
+        headers: { Authorization: bearerToken },
+      },
+    );
+
+    if (getUserResult.status != 200)
+      throw new NotFoundException('Cant get user profile');
+
+    return await new Response(getUserResult.body).json();
   }
 }

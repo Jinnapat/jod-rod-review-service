@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Param, Body } from '@nestjs/common';
+import { Controller, Post, Get, Param, Body, Headers } from '@nestjs/common';
 import { ReviewService } from './review.service';
 
 @Controller()
@@ -14,9 +14,10 @@ export class ReviewController {
 
   @Post('createReview/:id')
   async createReviewIdHandler(
-    @Param('id') reservationId,
+    @Param('id') parkingLotId,
+    @Headers('Authorization') bearerToken,
     @Body('message') message,
   ) {
-    await this.reviewService.createReview(reservationId, message);
+    await this.reviewService.createReview(parkingLotId, bearerToken, message);
   }
 }
